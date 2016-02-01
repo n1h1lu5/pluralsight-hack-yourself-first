@@ -1,0 +1,24 @@
+----------------------------
+Introduction
+----------------------------
+
+Chrome developper tool vs fiddler:
+	- Fiddler behave like a HTTP proxy (sits between browser and the website)
+
+Burp like inspector (inspector 21 add-on for fiddler 2)
+
+----------------------------
+Transport Layer Protection
+----------------------------
+
+Transport Layer Protection (HTTPS, SSL, etc.)
+	- This is related to the man in the middle attack
+
+	- 3 objectives:
+		- Authenticity: Connecting to who? Garanty of identity?
+		- Integrity: Request haven't been manipulated? Response haven't been manipulated?
+		- Confidentiality: Eaves dropping? (Kept private?)
+
+Man in the middle
+	- Observe/modify a communication
+
