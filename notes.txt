@@ -75,3 +75,67 @@ Summary
 	- Many points to do a man in the middle
 	- If you need SSL, you also need to use it correctly (no sensitive cookies over HTTP, don't use HTTP to load the forms, do not embed insecure content in secure page (mixed content))
 	- HSTS additional safety net
+
+----------------------------
+Cross Site Scripting (XSS)
+----------------------------
+
+Introduction
+	- Untrusted data and sanitisation
+	- Sanitisation practices
+	- What is XSS?
+
+Understanding untrusted data and sanitisation
+	- What constitutes untrusted data? : 
+		Integrity not verifiable, intent may be malicious (SQL injection, XSS, binary with malware, etc.)
+	- Can come from the user (from a form, in the url, etc.)
+	- Can come from the browser (cookies, request headers)
+	- Can come from an external web service, our own DB (if you accepted untrusted data), etc.
+
+The use of input sanitisation
+	- Filter for what is acceptable or not
+		- Like rejecting <>'/"\, etc.
+			- This is blacklisting the characters. Rudementry, has holes
+			- This is what we don't want today, can change over time
+		- The whitelist is lower risk approach and is very explicit (can use regex for example)
+	- Example, some website sanitized only on < since "without it, the nthis is not HTML tag"
+		- This is why blacklisting is difficult and risky
+
+Understanding reflected untrusted data
+	- Typical request with untrusted data:
+		- user request resource with untrusted data -> server response the data is reflected in the response (like the search in the demo: you searched for: '[...]'). It is how you can identify an XSS risk
+	- For the site:
+		- Request: <trusted>(www.mysite.com/Search?q=)<untrusted>(ferrari)
+		- Response: <trusted>(you searched for <strong>)<untrusted>(ferrari)<trusted>(</strong>)
+
+		Example:
+			http://hackyourselffirst.troyhunt.com/Search?searchTerm=ferrari<i>enzo</i>
+			you searched for <strong><i>ferrari</i></strong>
+	- Then can inject different text, or even JS (executable stuff)
+
+Output encoding concepts
+	- An other protection against XSS, other than sanitization, is to display the reflecting data exactly as it was given by the user on the screen rather then reflected in the markup (the url)
+	- Output encoding context can change the encoding
+		For example, for <: HTML: &lt;
+							CSS: \<
+							JS: \x3ci\x3
+							...
+    - WHAT YOU SEE IN THE DEV TOOL IS MORE REPRESENTATIVE THEN WHAT IS REPRESENTED IN THE DOM
+    	 For example in the site: / in a search term is in fact &#47; in the dev tool source code, html source is a better representation of what is returned by the server
+
+We looked at reflected XSS, another is persistent XSS
+	It is what is already in the DB
+		For example, it has been saved by a user, and when loaded it does bad things
+
+X-XSS-Protection header
+	- Browser embeded protection against XSS
+	- As a developper, you cannot rely on that. That is a bonus.
+	- For example: in the response header: X-XSS-Protection:0 (value 0 means disable)
+		- X means it is a non http standard header
+	- Why to disable this? Their where cases where X-XSS could cause problems to some applications
+
+Summary
+	- Sanitization is first line of defence against XSS
+	- Ouput encoding is critical for mitigating the risk of XSS
+	- Don't trust your own data
+	- Browser defences is additional, don't rely on it
