@@ -135,7 +135,40 @@ X-XSS-Protection header
 	- Why to disable this? Their where cases where X-XSS could cause problems to some applications
 
 Summary
-	- Sanitization is first line of defence against XSS
+	- Sanitization is first line of defence against XSS (holes can be easy to find, espacially with blacklisting)
 	- Ouput encoding is critical for mitigating the risk of XSS
-	- Don't trust your own data
+	- Don't trust your own data (often-overlooked threat)
 	- Browser defences is additional, don't rely on it
+
+----------------------------
+Cookies
+----------------------------
+
+Cookies 101
+	There are just a piece of text stored in the browser
+
+	The server can set cookies via HTTP response header or can be setted via JS directly in the DOM
+	Cookies are automatically passed back to the website in the header of each request
+		GET http://site.com/ HTTP/1.1
+		Cookie: name=value
+
+	HTTP cookie exchange:
+		request -> ser respond with set-cookie header -> subsequent requests automatically send the cookie
+
+	Cookie security:
+		- Cookies frequently contain data of a sensitive nature
+		- Browsers have some native defenses for cookie (same domain), but does not protect against XSS to have cookies
+		- Can be more secured by tuning their attributes
+
+	Cookie attributes
+		Domain
+		Path
+		Expiration
+		HttpOnly
+		Secure
+
+	If AuthCookie not flaged as HTTP, then it is accessible by client script. (Risk of session highjack)
+
+	For example: seach term on unsecure website: ');alert(document.cookie);//
+
+	
