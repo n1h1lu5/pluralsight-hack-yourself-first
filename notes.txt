@@ -191,7 +191,7 @@ Restricting cookie access by path.
 	If a string end by a =, it is a sign that it is probably encoded in base64. (There is base64 decoding, so this is not cryptography persay)
 
 Reducing risk with cookie expiration
-	XSS, clickjack attacks, etc, can take place when the cookies are active.
+	XSS, clickjack attacks, CSRF, etc, can take place when the cookies are active.
 
 	Need to find the right balance between convinience and security
 
@@ -208,5 +208,97 @@ Summary
 
 ------------------------------------
 Internal Implementation Disclosure
+------------------------------------
+
+How an attaker builds a website risk profile
+	In other words, how do they find security flaws?
+		ex: What are the points of untrusted data entry?
+			What sanitisation practices have been emplyed?
+			What frameworks and plugins are used?
+			What is the structure of the website?
+			Is there something disclosed in the source code?
+
+	NIST: National Institute of Standards and Technology
+		List all known vulnerabilities
+			Made to help the dev. to protect their product, but it can also helps the attackers
+
+Server response header disclosure
+	Type of server (ex: IIS/8.0)
+	AspNet-Version
+	AspNetMvc-Version
+	X-Powered-By: (ex: ASP.NET)
+
+	We want to get rid of this. there is no value for the end user, and the browser do not care. That way, the attacker would have to do more reshearch.
+
+	If you want it, you can put it in a cookie, and the value crypted
+
+Locating at-risk websites
+	Look at the Apache Release History
+
+	CVE: Common Vulnerabilities and Exposures
+
+	https://www.shodan.io/ : search engine look for devices
+
+HTTP fingerprinting of servers
+	It is to be able to identify specific attributes of a website to know attributes of a website
+
+	For example:
+		In fiddler: composer -> to execute requests
+
+	You can check the order of the attributes : in Apache 1.3.23 you see date first, in IIS/8.0 you see it last. So you can guest like that.
+
+	If you change the HTTP version for an invalid one (ex: HTTP X.1) and see what happens:
+		The 400 page that comes from the server is different between Apache 1.2.23 and IIS.8.0
+
+	Turn off HTTP headers that disclose internal implementations
+		Attacker won't find you on a search engine, but if he is determine, he can find a way to guest them
+
+Disclosure via robots.txt
+	It implements the robot exlusion (exclusion for crawlers, content that they should not index)
+
+	Attackers would start probing on those paths
+
+	Robots.txt can be seen by anyone.
+
+The risks of leaking data in HTML source
+	Comments (psw, zipfile download path, etc.), JS libraries (versions)
+
+Internal error message leakage
+	Ex: DB could not be contacted, data conversion did not work
+
+	This can disclose the internal representaion of the code
+
+		ex: https://hackyourselffirst.troyhunt.com/Make/200 does not exists, so we have a Yellow screen of death (ASP.NET) We can see code, name of the error, the stacktrace, the location of the source file (location of the server), version information, etc.
+
+	So we have to properly handle unproper requests. (Have a fiendly error message, no error internal implementation disclosure)
+		But be carefull to not leak any thing in the error url (error handling url ex: [...]Error?aspxerrorpath=/Make/200)
+
+		Do not change the url
+
+	Keep information away from attackers..
+
+Lack of access controls on diagnostic data
+	Not enough control on sensitive implementation data (logs, etc.)
+
+	elmah -> error login module and handlers (popular logger for ASP)
+		That can give cookies (AuthCookie.. ) and multiple server attributes
+
+	There is the name of the website and the name of the server
+
+	Best case: Just don't make the log accessible by the public website, send them somewhere else. Or at least do not expose it publicly, ask for special account at the very least
+
+	filetype:config inurl:web.config inurl:ftp find web.config that are acessible over ftp
+
+	Be careful of what data is public and what should be acessible only by the admin
+
+Summary
+	Keep information about frameworks and server versions private
+		But don't rely on that
+	Be conscious of what you are disclosing
+	Internal exceptions should never bubble up to the user
+	Internal logs must have proper acces controls (this can be catastrophic)
+
+------------------------------------
+Parameter Tampering
 ------------------------------------
 
