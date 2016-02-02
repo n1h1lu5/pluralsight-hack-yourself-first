@@ -453,3 +453,50 @@ Summary
 Cross Site Attacks
 ------------------------------------
 
+Understanding cross site attacks (CSRF)
+    Authentication is usually persisted by an AuthCookie, and is sent with each request, the website then identify and authorise the usre based on the cookie
+
+    --> What if we could get the user to make a request they didn't want to do?
+
+    resource requested with auth cookie -> (do the attacker request with the auth cookie of the user)
+
+Testing for a cross site request forgery risk
+    This kind of attack often require social engineering
+
+The role of anti-forgery tokens
+    This is the mitigation for CSRF
+
+    page with a form is requested -> resultant page contains a token in a hidden field and one in a cookie (one anti-forgery token in each, they are paired when issued and are usually encrypted. They are also keyed to the current user. The token won't be usefull for anyone else)
+    -> browser sends back both the hidden form token and the one in the cookie
+    (website ensures tokens are a valid pair)
+
+    Anti-forgery tokens add randomnesss to the request pattern
+    An attacker does not have the token in the hidden form field so they can not reproduce it in the forged request
+    The cookie provides verification of the token from the hidden field
+
+    What if you put another user's anti-forgery token? 
+        The anti-forgery tokens won't match
+
+Testing cross site request forgery against APIs
+    Make sure there is a match between the two tokens, then the risks of CSRF are mitigated
+
+Mounting a clickjacking attack
+    This is how we can do a CSRF with the anti-forgery tokens on. How?
+        By adding an iframe to the DOM, this iframe can be src=[change password page]. Invisible, make the user click on the buttons that makes it change the password. The change password is sitting over the attack page, but is invisible.
+
+    The 3D view in FF shows up this, even if they are hidden.
+
+    How to mitigate that? With a X-Frame-Options (XFO) header (options: Deny, SameOrigin, Allow-From [URI])
+        It specifies how the page may be "framed"
+        The browser then:
+            Deny: no framing allowed
+            or SameOrigin: a frame on antoher page in the same site
+            or Allow-From [URI]: specified site only
+
+Summary
+    CSRF depend on the user browser being tricked into issuing a request
+    It simply creates a request of the correct structure and sends the attacker payload
+    Anti-forgery tokens and randomness to the request
+    APIs are at the same risk of CSRF, require the same defence
+    A clickjack can easily circumvent CSRF protections
+        Mitigated with XFO header
