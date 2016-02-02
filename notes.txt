@@ -302,3 +302,91 @@ Summary
 Parameter Tampering
 ------------------------------------
 
+Identifying untrusted data in HTTP request parameters
+	What constitutes untrusted data? : integrity not verifiable, intent may be malicious, data may content payloads such as SQL injection, cross site scripting (XSS), ninaries containing malware, etc.
+
+	Common sources of untrusted data:
+		- from the user (form, query, etc)
+		- from the browser (cookies, request headers)
+		- from the DB, external service, etc.
+
+	What can be tampered within an HTTP request?
+		What can be sent by a browser can be sent by an attacker
+
+		The HTTP verb (POST, GET, etc)
+		The path
+		HTTP version
+		Accept (text/html, application/xml, etc.)
+		User-Agent (the client: browser + version, OS, webkit + version)
+		Referer
+		Accept-Language (ex: en-US)
+		Cookie
+		Request body (ex: logon, they could be in clear text...) it is easy to manipulate request body
+
+		Their can be "hidden fields", (made by dev.) they may have been ignore by dev. in regards to security, and are prone to JS injection.
+
+Capturing requests and manipulating parameters
+	In fiddler: 
+		- drag the request to the composer
+		- Modify the request body: in the example, you can change the user Id of the vote request, so you could vote for someone else.
+
+	Need to do parameter check when parameters are in request body (in the case above, the server should return a 403 (forbidden))
+
+Manipulating application logic via parameters
+	Ex: You have already voted for this car (their is application logic behind this)
+
+	Even if you do validation, (ex: can only vote once), you still can vote for the logged person via HTTP.
+
+Testing for missing server side validation
+	Attackers have acces to client, so if they want to by pass client validation, they can (ex: directly create and HTTP request)
+
+	(To see if the validation is only client side, check Network tab in dev. tool.) If not, you can then manipulate the request and send XSS to the server, no validation done.
+
+	In the example, persistent XSS attacks can touch anonimous users (like, loading the voter last name, but the last name is a XSS)
+
+	If the attacker disable JS, and the validation is only client side, then XSS can be directly sent to the server.
+
+Executing a mass assignment attack by exploiting model binding
+	Use model binding and POST request to modify model value (ex: IsAdmin=true in the change name page.)
+
+	To mitigate: either use a white list that the framework is allowed to change or a black list
+
+HTTP verb tampering
+	Sometimes, application comportement can change depending on the HTTP verb. (GET vs POST can sometime be use interchangebly)
+
+	You can go around sanitization and validation if you do a POST instead of a GET for example (in the research, POST the searchTerm instead of doing a GET with that in url)
+
+	Mitigation: It is only ever OK to load a page via GET, otherwise 404. (This is a hardline approach, but the more secure too)
+
+Fuzz testing
+	Common request payloads an attacker may test:
+		- XSS: patterns to manipulate page source
+		- SQL injection: patterns to manipulate query execution
+		- Directory traversal: patterns to access system files
+
+	Fuzz testing: can automate the process of bombarding an application with random data. Fuzz testing tools generally identify responses which could indicate a vulnerability is present.
+
+	You take a request and then fuzz test it.
+
+	(Right click on request -> intruder21)
+		It highlight untrusted data that is sent via the request, this is where intruder will do fuzz testing on that.
+
+		On payload tabs: this is the fuzz tests that will be applied.
+
+		Result -> start test
+
+		This is an easy way to find places where the site does not send a 200 OK, those places are a good starting point.
+
+	There are fuzz testing DB (ex: fuzzdb)
+
+	It does not automate the entire process, but it accelerate the process to find points of interest
+
+Summary
+	Always assume that all aspects of an HTTP request can be AND WILL BE manipulated attackers
+	Don't rely on JS validation
+	Automate your testing (fuzz testing)
+
+------------------------------------
+SQL Injection
+------------------------------------
+
