@@ -1,6 +1,6 @@
-----------------------------
+------------------------------------
 Introduction
-----------------------------
+------------------------------------
 
 Websites for course:
 
@@ -12,9 +12,9 @@ Chrome developper tool vs fiddler:
 
 Burp like inspector (inspector 21 add-on for fiddler 2)
 
-----------------------------
+------------------------------------
 Transport Layer Protection
-----------------------------
+------------------------------------
 
 Transport Layer Protection (HTTPS, SSL, etc.)
 	- This is related to the man in the middle attack
@@ -76,9 +76,9 @@ Summary
 	- If you need SSL, you also need to use it correctly (no sensitive cookies over HTTP, don't use HTTP to load the forms, do not embed insecure content in secure page (mixed content))
 	- HSTS additional safety net
 
-----------------------------
+------------------------------------
 Cross Site Scripting (XSS)
-----------------------------
+------------------------------------
 
 Introduction
 	- Untrusted data and sanitisation
@@ -140,9 +140,9 @@ Summary
 	- Don't trust your own data (often-overlooked threat)
 	- Browser defences is additional, don't rely on it
 
-----------------------------
+------------------------------------
 Cookies
-----------------------------
+------------------------------------
 
 Cookies 101
 	There are just a piece of text stored in the browser
@@ -155,7 +155,7 @@ Cookies 101
 	HTTP cookie exchange:
 		request -> ser respond with set-cookie header -> subsequent requests automatically send the cookie
 
-	Cookie security:
+Cookie security:
 		- Cookies frequently contain data of a sensitive nature
 		- Browsers have some native defenses for cookie (same domain), but does not protect against XSS to have cookies
 		- Can be more secured by tuning their attributes
@@ -171,4 +171,42 @@ Cookies 101
 
 	For example: seach term on unsecure website: ');alert(document.cookie);//
 
-	
+	This flag is set in the response header (HttpOnly)
+
+	This is an easy mitigation that is quite easy to add a gives a good security protection (should still sanitize though)
+
+Understanding secure cookies
+	Flag cookies as secure:
+		The AuthCookie won't be visible over HTTP (for example, when you get an image). The secure flag makes the browser do not send the AuthCookie over HTTP.
+
+		But that mean you can never make a HTTP authentification.
+
+	For AuthCookie, we want HTTP flag for no access by client and secure flag for HTTPS only.
+
+Restricting cookie access by path.
+	In Chrome dev. tool, you can see the Path on which the cookies will be sent (Resources -> Cookies -> Path). If path is / , then they will be sent we every request (images, page, etc.) even if they don't need them.
+
+	On log off, the Password and the Email cookies are not cleared, for automatic log in.
+
+	If a string end by a =, it is a sign that it is probably encoded in base64. (There is base64 decoding, so this is not cryptography persay)
+
+Reducing risk with cookie expiration
+	XSS, clickjack attacks, etc, can take place when the cookies are active.
+
+	Need to find the right balance between convinience and security
+
+	In dev. tool. you can see the expiration date of cookies.
+
+Using session cookies to further reduce risk
+	The AuthCookie expiration can be set to session. It will be a session cookie, therefore, when the browser closes, the cookie is discarded (ex: Banking)
+
+	There is always a trade between usability and security.
+
+Summary
+	- 3rd party lib are often in HTTP
+	- HttpOnly is an essential flag for a cookie that is not nescessary via client script
+
+------------------------------------
+Internal Implementation Disclosure
+------------------------------------
+
