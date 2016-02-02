@@ -390,3 +390,66 @@ Summary
 SQL Injection
 ------------------------------------
 
+Understanding SQL injection
+	First in top 10 OWASP is injection (including SQL)
+
+	SQL injection: you start with a url request
+		<trusted>(www.mysite.com/widget?id=1 -> select * from widget where id =) <untrusted>(1);
+
+		ex: www.mysite.com/widget?id=1 or 1=1 -> select * from widget where id = 1 or 1=1
+			Always true, so we get all widget\
+
+Discovering dtabase structure via injection
+	Types of SQL injection attack
+		Explicit: (will put table or row names)
+			- union-based attack (append a result set that is rendered to the markup)
+			- error-based attack disclose information in an unhandled exception
+		Implicit (blind) (look for conditions or true-false answer)
+			- boolean-based: test if a particular condition is true
+			- time-based: cause the response to be delayed in response to a test
+
+	Different type of servers requires different SQL injection attack (IIS vs apache, etc.)
+
+	For example: add a ' in the comment section of the vote break the DB insert. The error can be seen and can expose important stuff.
+
+	Use failling request to expose data table names (select top 1 convert(int, name) from sys.tables)
+
+	Need to be carefull when creating SQL injection, special characters are encoded (+ for concat in SQL is escape in HTTP, must use the encoded +)
+
+	Could be able to set IsAdmin flag to true (or false to other, why not?)
+
+Harvesting data via injection
+	If you know table and column names, an attacker could eventually access to user name and passwords for example
+
+Automating attacks with Havij
+	You give it a target url, and it will list everything that it can find (tables name, columns name) and tell it to return us some data (like users and passwords)
+
+Blind SQL injection
+	Use this when internal data and structures are not disclosed.
+
+	Example for order [...]Leaderboard?orderBy=PowerKw&asc=false -> select * from supercar order by PowerKw
+
+	Example: 
+	select * from supercar order by [PowerKw]
+
+	, case when (select count(*) from sys.tables) = 0 then 1 else convert(int, 'x')
+
+	[asc]
+
+	So, even if the error handling is there, we can know stuff, if there is an error, then it tell us there is no 0 table in the DB.
+
+Secure app patterns
+	Parameterize a sql parameter so that it is no more a matter of concataining. No matter what value, it will always be used as a param. (How do you parameterize untrusted data in a sql sentence (critical!))
+
+	Also, white list the values that we know to be good.
+
+	Do proper paramiterization even if you do white list, they are mutually exclusive
+
+Summary
+    Untrusted data is something that comes around often
+    Automating SQL injection is easy (there are open source tool for that)
+
+------------------------------------
+Cross Site Attacks
+------------------------------------
+
