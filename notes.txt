@@ -500,3 +500,88 @@ Summary
     APIs are at the same risk of CSRF, require the same defence
     A clickjack can easily circumvent CSRF protections
         Mitigated with XFO header
+
+------------------------------------
+Account Management
+------------------------------------
+
+Understanding password strength and attack vectors
+    Password security is driven by 2 primary factors: strengh and uniqueness
+
+    Hash is the best way to crypto credentials
+
+    Uniqueness: Must be sure to use a password that has not been leaked from past breach
+
+    Sources of attacks against passwords:
+        Remote
+            - Man in the middle attack against the transport layer
+            - Password retrieved after being sent in an email
+            - Accounts brute-forced via HTTP posts
+            - Admin facility compromised
+            - SQL injection risk exploited
+        Local
+            - Passwords retrieved from a backup
+            - Amins with direct access to password storage
+            - Brute force attacks against password cryptography
+                The attacker have access to the passwords sypher
+    
+    As dev. we must consider that customers re-use the same password for multiple accounts
+        Even if there are no private stuff in our site, because the credentials could be used to login to another website that is more critical
+
+Limiting characters in passwords
+    This is bad, do not force the user to not use special characters, do not limit the number of characters, because with the cypher, they will all have the same length
+
+    There should be no XSS risks with passwrod (you don't render it on the screen after registration, don't you?), so, accept any characters
+
+Emailing credentials on account creation
+    Do not send password by email. You sent it over smtp... in plain text. The email does not have any protection and it is in the inbox without any cryptographic protection.
+
+Account enumeration
+    Forgot your password -> enter email
+        The website can give feedback if the email adress exits or not. So an attacker that has a user list, he can know which of them has an account there.
+
+        The feedback should not disclose any information about the existance of the account
+
+Denial of service via password reset (Not distributed denial of service)
+    Changing the password of the user by a new default password on password reset gives the attacker the abitility to lock someone out of their account ...
+
+    With a list of user, you can try to change and brute force the new passwords of them
+
+Correctly securing the reset processes
+    In the email of the reset process, proceed to a link, where the user can choose a new password.
+
+    In the url there is a token that is keyed to the user's account.
+        The token has enough entropy to not be forceable.
+        The token is time limited (ideally), like an hour or so.
+        
+Establishing insecure password storage
+    - Plain text (no crypto)
+    - Encrypted (usually via a symetric key, but there is decryption.., once the private key is disclosed, then it is game over)
+    - Hashed (a one-way, deterministic (always apply the same algo to the same text and get the text everytime) algorithm, can't be unhashed)
+
+    Easiest way to know how passwords are stored:
+        Inspect the element of auto-filled passwords filled, if they are in plain text, well...
+
+        http://plaintextoffenders.com/
+
+Testing for risks in the remember me feature
+    Email and password cookie. There are no protection for the password when it is on the device. It could be accessed by JS client script.
+
+    Some website send the password in plain text over HTTP, a man in the middle can intercept that.
+
+    We don't need to put email and password in cookies, the AuthCookie is sufficient.
+
+Re-authenticating before key actions
+    For example, on change password: if an attacker highjacked the session, he could change the password and steal the account.
+
+    Rare actions with high impact should require re-authentication
+
+Testing for authentication brute force
+    Brute force password for a user is a common and easy to do attack.
+
+    Mitigating:
+        - Account lockout after X failed login attemps (but need a mechanism to re-enable it)
+        - Restrict logon attemps by IP adress (set an allowable rate for the same IP to attempt login (infected machines), but attackers may have many IPs and legitimate users may share IPs)
+        - Fingerprint the client and scale the rate
+            Uniquely identify the client based on request attributes then slow the rate at which they can attempt to login
+            but the fingerprint can be manipulated by an attacker, so the rate would always be instantanious, instead of growing exponentially for example
